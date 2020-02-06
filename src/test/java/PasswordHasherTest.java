@@ -1,8 +1,7 @@
-import Crypto.PasswordHasherManager;
+import MicroOauthServer.Crypto.PasswordHasherManager;
 import org.junit.Test;
 
 import java.security.NoSuchAlgorithmException;
-import java.security.SecureRandom;
 import java.security.spec.InvalidKeySpecException;
 import java.util.Base64;
 import java.util.Random;

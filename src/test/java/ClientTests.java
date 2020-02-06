@@ -1,3 +1,5 @@
+import MicroOauthServer.Token.AuthorizationToken;
+import com.google.gson.Gson;
 import org.junit.Test;
 
 import java.io.IOException;
@@ -29,36 +31,52 @@ public class ClientTests {
         return HttpRequest.BodyPublishers.ofString(builder.toString());
     }
 
-    private void sendPOST() throws IOException, InterruptedException {
+    private String sendPOST(String url) throws IOException, InterruptedException {
 
         // form parameters
         Map<Object, Object> data = new HashMap<>();
         data.put("grant_type", "client_credentials");
-        data.put("client_id", "account.clientId");
-        data.put("client_secret", "YOUR_CLIENT_SECRET");
+        data.put("client_id", "test-client");
+        data.put("client_secret", "test-secret");
         data.put("audience", "YOUR_API_IDENTIFIER");
 
         HttpRequest request = HttpRequest.newBuilder()
                 .POST(ofFormData(data))
-                .uri(URI.create("http://localhost/oauth/token"))
+                .uri(URI.create(url))
                 .setHeader("User-Agent", "Java 11 HttpClient Bot") // add request header
                 .header("Content-Type", "application/x-www-form-urlencoded")
                 .build();
 
         HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
+        return response.body();
+    }
 
-        // print status code
-        System.out.println(response.statusCode());
+    private String introspectToken(String token) throws IOException, InterruptedException {
+        // form parameters
+        Map<Object, Object> data = new HashMap<>();
+        data.put("token", token);
 
-        // print response body
-        System.out.println(response.body());
+        HttpRequest request = HttpRequest.newBuilder()
+                .POST(ofFormData(data))
+                .uri(URI.create("http://localhost/oauth/introspect"))
+                .setHeader("User-Agent", "Java 11 HttpClient Bot") // add request header
+                .header("Content-Type", "application/x-www-form-urlencoded")
+                .build();
 
+        HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
+        return response.body();
     }
 
     @Test
     public void postClientFlow() {
+
         try {
-            sendPOST();
+            String response = sendPOST("http://localhost/oauth/token");
+            Gson gson = new Gson();
+            System.out.println(response);
+            AuthorizationToken token = gson.fromJson(response, AuthorizationToken.class);
+            System.out.println(token.getAccess_token());
+            System.out.println(introspectToken(token.getAccess_token()));
         } catch (IOException e) {
             e.printStackTrace();
         } catch (InterruptedException e) {
