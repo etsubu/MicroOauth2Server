@@ -2,7 +2,7 @@ package MicroOauthServer.ClientFlow.Flows;
 
 import MicroOauthServer.ClientDatabase.InvalidScopeException;
 import MicroOauthServer.Exceptions.MicroOauthCoreException;
-import MicroOauthServer.Token.TokenExpiredException;
+import MicroOauthServer.Exceptions.TokenExpiredException;
 import MicroOauthServer.Token.TokenService;
 import com.google.gson.Gson;
 import org.springframework.beans.factory.annotation.Autowired;

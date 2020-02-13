@@ -4,7 +4,7 @@ import MicroOauthServer.ClientDatabase.ClientAuthenticationException;
 import MicroOauthServer.ClientDatabase.ClientManager;
 import MicroOauthServer.ClientDatabase.InvalidScopeException;
 import MicroOauthServer.Exceptions.MicroOauthCoreException;
-import MicroOauthServer.Token.TokenExpiredException;
+import MicroOauthServer.Exceptions.TokenExpiredException;
 import com.google.gson.Gson;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -15,7 +15,6 @@ import org.springframework.web.server.ResponseStatusException;
 
 import java.nio.charset.StandardCharsets;
 import java.util.Base64;
-import java.util.List;
 import java.util.Map;
 
 @Component

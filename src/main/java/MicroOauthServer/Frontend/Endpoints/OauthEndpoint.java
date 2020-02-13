@@ -7,6 +7,9 @@ import MicroOauthServer.ClientFlow.Flows.GrantFlow;
 import MicroOauthServer.ClientFlow.Flows.PasswordCredentialGrantFlow;
 import MicroOauthServer.ClientFlow.Flows.RefreshTokenGrantFlow;
 import MicroOauthServer.Exceptions.MicroOauthCoreException;
+import MicroOauthServer.Exceptions.TokenExpiredException;
+import MicroOauthServer.Sdk.Annotations.RequireScopes;
+import MicroOauthServer.Sdk.Annotations.Scopes.Scopes;
 import MicroOauthServer.Token.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -19,7 +22,6 @@ import javax.annotation.PostConstruct;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
 @RestController
@@ -55,12 +57,10 @@ public class OauthEndpoint {
         grantFlows.put(ClientGrantFlow.CLIENT_GRANT_TYPE, clientGrantFlow);
     }
 
-    @GetMapping(value = "/authorize")
-    public void authorizationRequest(@RequestParam(value = "response_type") String grantType,
-                                     @RequestParam(value = "client_id") String clientId,
-                                     @RequestParam(value = "state") String state,
-                                     @RequestParam(value = "redirect_uri") String redirectUri) {
-
+    @GetMapping(value = "/healthcheck")
+    @RequireScopes(scopes = "test-scope", redirectToAuthorize = true)
+    public String healthcheck() {
+        return "Alive";
     }
 
     @PostMapping(value = "/token")
@@ -86,19 +86,11 @@ public class OauthEndpoint {
     }
 
     @PostMapping(value = "/introspect")
+    @RequireScopes(scopes = Scopes.TOKEN_INTROSPECT)
     public IntrospectionResponse tokenIntrospect(HttpServletRequest request,
                                                  HttpServletResponse response,
                                                  @RequestParam(value = "token") String token,
                                                  @RequestParam(value = "token_type_hint", required = false) String tokenTypeHint) {
-        try {
-            return tokenService.introspectToken(token);
-        }  catch(MicroOauthCoreException e) {
-            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Internal server error. Please try again later");
-        }
-    }
-
-    @GetMapping(value = "/test")
-    public AuthorizationToken asd() {
-        return new AuthorizationToken("dsadsa", AuthorizationToken.BEARER_TYPE, 10);
+        return tokenService.introspectToken(token);
     }
 }

@@ -1,6 +1,8 @@
 package MicroOauthServer.Token;
 
+import MicroOauthServer.Configuration.Configuration;
 import MicroOauthServer.Crypto.SymmetricCrypto;
+import MicroOauthServer.Exceptions.TokenExpiredException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -15,13 +17,16 @@ public class TokenGenerator {
     private Logger log = LoggerFactory.getLogger(TokenGenerator.class);
     public static final String ACCESS_TOKEN_TYPE = "access_token";
     public static final String REFRESH_TOKEN_TYPE = "refresh_token";
+    public static final String CODE = "code";
     public static final int ACCESS_TOKEN_LENGTH = 32;
-    public static final int AUTHORIZATION_TOKEN_TTL_IN_SECONDS = 60 * 5; // 5 minutes
-    public static final int REFRESH_TOKEN_TTL_IN_SECONDS = 60 * 60 * 24 * 30; // 1 month
+    public static final int AUTHORIZATION_CODE_LENGTH = 16;
     private SecureRandom rand;
 
     @Autowired
     private SymmetricCrypto crypto;
+
+    @Autowired
+    private Configuration configuration;
 
     public TokenGenerator() {
         rand = new SecureRandom();
@@ -29,6 +34,12 @@ public class TokenGenerator {
 
     public String generateToken() {
         byte[] buffer = new byte[ACCESS_TOKEN_LENGTH];
+        rand.nextBytes(buffer);
+        return Base64.getEncoder().encodeToString(buffer);
+    }
+
+    public String generateAuthorizationCode() {
+        byte[] buffer = new byte[AUTHORIZATION_CODE_LENGTH];
         rand.nextBytes(buffer);
         return Base64.getEncoder().encodeToString(buffer);
     }
@@ -43,7 +54,7 @@ public class TokenGenerator {
     public StorageToken generateStorageToken(String clientId, String type, String scopes, String token) {
         Instant time = Instant.now();
         return new StorageToken(clientId, token, type, scopes, time.getEpochSecond(),
-                time.getEpochSecond() + AUTHORIZATION_TOKEN_TTL_IN_SECONDS);
+                time.getEpochSecond() + configuration.getMicroOauth().getAccessTokenTTL());
     }
 
     /**
@@ -56,7 +67,13 @@ public class TokenGenerator {
     public StorageToken generateStorageRefreshToken(String clientId, String type, String scopes, String token) {
         Instant time = Instant.now();
         return new StorageToken(clientId, token, type, scopes, time.getEpochSecond(),
-                time.getEpochSecond() + REFRESH_TOKEN_TTL_IN_SECONDS);
+                time.getEpochSecond() + configuration.getMicroOauth().getRefreshTokenTTL());
+    }
+
+    public StorageToken generateStorageAuthorizationCode(String clientId, String scopes, String redirectUri, String token) {
+        Instant time = Instant.now();
+        return new StorageToken(clientId, token, TokenGenerator.CODE, scopes, time.getEpochSecond(),
+                time.getEpochSecond() + configuration.getMicroOauth().getAuthorizationCodeTTL(), redirectUri);
     }
 
     /**

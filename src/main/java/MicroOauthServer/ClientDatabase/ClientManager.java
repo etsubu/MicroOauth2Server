@@ -3,6 +3,7 @@ package MicroOauthServer.ClientDatabase;
 import MicroOauthServer.Clients.OauthClient;
 import MicroOauthServer.Crypto.PasswordHasherManager;
 import MicroOauthServer.Exceptions.MicroOauthCoreException;
+import MicroOauthServer.Sdk.Annotations.Scopes.Scopes;
 import MicroOauthServer.Token.AuthorizationToken;
 import MicroOauthServer.Token.TokenService;
 import org.slf4j.Logger;
@@ -12,6 +13,7 @@ import org.springframework.stereotype.Component;
 
 import javax.annotation.PostConstruct;
 import java.util.List;
+import java.util.Set;
 
 /**
  * Client manager handles querying, creating, deleting and authenticating oauth2 clients
@@ -20,6 +22,8 @@ import java.util.List;
 @Component
 public class ClientManager {
     private Logger log = LoggerFactory.getLogger(ClientManager.class);
+
+    @Autowired
     private ClientStorageAPI clientStorage;
 
     @Autowired
@@ -29,13 +33,12 @@ public class ClientManager {
     private TokenService tokenService;
 
     public ClientManager() {
-        this.clientStorage = new SimpleClientStorage();
         log.info("Initialized ClientManager");
     }
 
     @PostConstruct
     public void init() throws ClientAuthenticationException {
-        createClient("test-client", List.of("account-mgmt", "token-validation"), "test-secret", "Test client");
+        //createClient("test-client", Set.of("account-mgmt", Scopes.TOKEN_INTROSPECT, "test-scope"), Set.of("http://localhost/healthcheck"), "test-secret", "Test client");
     }
 
     public static String validateScopes(String availableScopes, String requestedScopes) throws InvalidScopeException{
@@ -58,11 +61,11 @@ public class ClientManager {
         throw new InvalidScopeException();
     }
 
-    public OauthClient createClient(String clientId, List<String> scopes, String plaintextSecret, String description) throws ClientAuthenticationException {
+    public OauthClient createClient(String clientId, Set<String> scopes, Set<String> redirectUris, String plaintextSecret, String description) throws ClientAuthenticationException {
         if(clientStorage.queryClient(clientId).isEmpty()) {
             String secret = hashManager.hash(plaintextSecret);
-            OauthClient client = new OauthClient(clientId, scopes, secret, description);
-            clientStorage.addClient(new OauthClient(clientId, scopes, secret, description));
+            OauthClient client = new OauthClient(clientId, scopes, redirectUris, secret, description);
+            clientStorage.addClient(new OauthClient(clientId, scopes, redirectUris, secret, description));
             return client;
         } else {
             throw new ClientAuthenticationException();

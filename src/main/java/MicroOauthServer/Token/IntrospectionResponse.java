@@ -83,9 +83,17 @@ public class IntrospectionResponse {
 
     public void setActive(boolean active) {this.active = active; }
 
+    public boolean getActive() { return active; }
+
     public void setClientId(String clientId) { this.clientId = clientId; }
+
+    public String getClientId() { return clientId; }
 
     public void setScope(String scope) { this.scope = scope; }
 
+    public String getScope() { return  scope; }
+
     public void setType(String type) { this.type = type; }
+
+    public String getType() { return type; }
 }

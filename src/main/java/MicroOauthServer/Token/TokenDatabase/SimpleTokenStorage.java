@@ -3,6 +3,7 @@ package MicroOauthServer.Token.TokenDatabase;
 import MicroOauthServer.Token.StorageToken;
 
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.Map;
 import java.util.Optional;
 
@@ -28,6 +29,16 @@ public class SimpleTokenStorage implements TokenStorageAPI {
     }
 
     @Override
+    public Optional<StorageToken> popToken(String key) {
+        synchronized (tokenCache) {
+            Optional<StorageToken> token = Optional.ofNullable(tokenCache.get(key));
+            // Remove if present
+            token.ifPresent(x -> revokeToken(token.get()));
+            return token;
+        }
+    }
+
+    @Override
     public boolean addToken(StorageToken token) {
         synchronized (tokenCache) {
             tokenCache.put(token.getToken(), token);
@@ -39,6 +50,17 @@ public class SimpleTokenStorage implements TokenStorageAPI {
     public boolean revokeToken(StorageToken token) {
         synchronized (tokenCache) {
             tokenCache.remove(token.getToken());
+            return true;
+        }
+    }
+
+    @Override
+    public boolean revokeAllTokensForClient(String clientId) {
+        synchronized (tokenCache) {
+            for(String token : tokenCache.keySet()) {
+                if(tokenCache.get(token).getClientId().equals(clientId))
+                    tokenCache.remove(token);
+            }
             return true;
         }
     }

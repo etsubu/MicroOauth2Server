@@ -9,6 +9,7 @@ public class StorageToken {
     private String scopes;
     private long generatedTimestamp;
     private long TTL;
+    private String redirectUri;
 
     public StorageToken(String clientId, String token, String type, String scopes, long generatedTimestamp, long TTL) {
         this.clientId = clientId;
@@ -17,6 +18,17 @@ public class StorageToken {
         this.scopes = scopes;
         this.generatedTimestamp = generatedTimestamp;
         this.TTL = TTL;
+    }
+
+    public StorageToken(String clientId, String token, String type, String scopes, long generatedTimestamp, long TTL,
+                        String redirectUri) {
+        this.clientId = clientId;
+        this.token = token;
+        this.type = type;
+        this.scopes = scopes;
+        this.generatedTimestamp = generatedTimestamp;
+        this.TTL = TTL;
+        this.redirectUri = redirectUri;
     }
 
     public String getClientId() {
@@ -36,4 +48,8 @@ public class StorageToken {
     public boolean isActive() {
         return Instant.now().getEpochSecond() < TTL;
     }
+
+    public String getRedirectUri() { return redirectUri; }
+
+    public void setRedirectUri(String redirectUri) { this.redirectUri = redirectUri; }
 }

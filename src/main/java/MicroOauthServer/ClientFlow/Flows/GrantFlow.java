@@ -2,9 +2,7 @@ package MicroOauthServer.ClientFlow.Flows;
 
 import MicroOauthServer.ClientDatabase.InvalidScopeException;
 import MicroOauthServer.Exceptions.MicroOauthCoreException;
-import MicroOauthServer.Token.AuthorizationToken;
-import MicroOauthServer.Token.TokenExpiredException;
-import org.springframework.stereotype.Component;
+import MicroOauthServer.Exceptions.TokenExpiredException;
 
 import java.util.Map;
 

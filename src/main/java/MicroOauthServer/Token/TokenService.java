@@ -2,8 +2,11 @@ package MicroOauthServer.Token;
 
 import MicroOauthServer.ClientDatabase.ClientManager;
 import MicroOauthServer.ClientDatabase.InvalidScopeException;
+import MicroOauthServer.Configuration.Configuration;
 import MicroOauthServer.Crypto.SymmetricCrypto;
+import MicroOauthServer.Exceptions.InvalidRedirectUriException;
 import MicroOauthServer.Exceptions.MicroOauthCoreException;
+import MicroOauthServer.Exceptions.TokenExpiredException;
 import MicroOauthServer.Token.TokenDatabase.SimpleTokenStorage;
 import MicroOauthServer.Token.TokenDatabase.TokenStorageAPI;
 import org.slf4j.Logger;
@@ -11,6 +14,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
+import java.time.Instant;
 import java.util.Base64;
 import java.util.Optional;
 
@@ -28,6 +32,9 @@ public class TokenService {
 
     @Autowired
     private TokenGenerator tokenGenerator;
+
+    @Autowired
+    private Configuration configuration;
 
     public TokenService() {
         this.tokenStorage = new SimpleTokenStorage();
@@ -65,7 +72,7 @@ public class TokenService {
 
     public AuthorizationToken useRefreshToken(String refreshToken, String scopes) throws TokenExpiredException, InvalidScopeException, MicroOauthCoreException {
         StorageToken token = tokenStorage.queryToken(refreshToken)
-        .orElseThrow(TokenExpiredException::new);
+                .orElseThrow(TokenExpiredException::new);
         if(!token.getToken().equals(TokenGenerator.REFRESH_TOKEN_TYPE)) {
             throw new TokenExpiredException();
         }
@@ -73,22 +80,40 @@ public class TokenService {
         return generateTokenForClient(token.getClientId(), grantedScopes);
     }
 
+    public AuthorizationToken useAuthorizationCode(String code, String redirectUri) throws TokenExpiredException, InvalidRedirectUriException {
+        StorageToken token = tokenStorage.popToken(code)
+                .orElseThrow(TokenExpiredException::new);
+        log.info("Changing authorization code to token " + code);
+        if(!redirectUri.equals(token.getRedirectUri())) {
+            throw new InvalidRedirectUriException("Redirect URI was not valid");
+        }
+        Instant time = Instant.now();
+        long TTL = token.getTTL() - time.getEpochSecond();
+        if(TTL <= 0) {
+            throw new TokenExpiredException();
+        }
+        log.info("Redirect uris match and code is still active. Generating access_token");
+        String rawToken = tokenGenerator.generateToken();
+        StorageToken authToken = tokenGenerator.generateStorageToken(token.getClientId(), TokenGenerator.ACCESS_TOKEN_TYPE, token.getScopes(), rawToken);
+        log.info("Saving Storage token " + authToken.getToken());
+        tokenStorage.addToken(authToken);
+        return tokenGenerator.storageTokenToBearerToken(authToken, null);
+    }
+
     public AuthorizationToken generateTokenForClient(String clientId, String scopes) throws MicroOauthCoreException{
         return generateTokenForClient(clientId, scopes, null);
     }
 
-    public AuthorizationToken generateTokenForClient(String clientId, String scopes, String refreshToken) throws MicroOauthCoreException{
-        String token;
-        do {
-            token = tokenGenerator.generateToken();
-            // Verify that the token does not exist
-        } while(tokenStorage.queryToken(token).isPresent());
+    public AuthorizationCode generateAuthorizationCode(String clientId, String scopes, String redirectUrl) {
+        String code = tokenGenerator.generateAuthorizationCode();
 
-        // Generate refresh token
-        do {
-            refreshToken = tokenGenerator.generateToken();
-            // Verify that the token does not exist
-        } while(tokenStorage.queryToken(refreshToken).isPresent());
+        StorageToken token = tokenGenerator.generateStorageAuthorizationCode(clientId, scopes, redirectUrl, code);
+        return new AuthorizationCode(token.getToken());
+    }
+
+    public AuthorizationToken generateTokenForClient(String clientId, String scopes, String refreshToken) throws MicroOauthCoreException{
+        String token = tokenGenerator.generateToken();
+        refreshToken = tokenGenerator.generateToken();
 
         StorageToken storageToken = tokenGenerator.generateStorageToken(clientId, TokenGenerator.ACCESS_TOKEN_TYPE, scopes, token);
         log.info("Storage token " + storageToken.getToken());
@@ -102,19 +127,19 @@ public class TokenService {
         }
     }
 
-    public IntrospectionResponse introspectToken(String tokenKey) throws MicroOauthCoreException{
+    public IntrospectionResponse introspectToken(String tokenKey) {
         byte[] token = Base64.getDecoder().decode(tokenKey);
         // Decrypt and validate that the token is not tampered with
         try {
             token = crypto.decrypt(token);
-            log.info("Introspecting token "+ tokenKey + " -> " + Base64.getEncoder().encodeToString(token));
+            log.info("Introspecting token " + tokenKey + " -> " + Base64.getEncoder().encodeToString(token));
             // MicroOauthServer.Token is now decrypted and can be queried from DB controller
             return tokenStorage.queryToken(Base64.getEncoder().encodeToString(token)).map(this::storageTokenToIntrospectionResponse)
                     .orElse(IntrospectionResponse.EXPIRED);
         } catch (Exception e) {
             // MicroOauthServer.Token decryption failed thus it is not created by the server
             log.error("Received invalid token which is not signed by the server ", e);
-            throw new MicroOauthCoreException();
+            return IntrospectionResponse.EXPIRED;
         }
     }
 }

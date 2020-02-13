@@ -1,4 +1,4 @@
-package MicroOauthServer.Token;
+package MicroOauthServer.Exceptions;
 
 public class TokenExpiredException extends Exception{
 }

@@ -12,6 +12,8 @@ import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 import java.util.Map;
 
+import static junit.framework.TestCase.assertEquals;
+
 public class ClientTests {
 
     private final HttpClient httpClient = HttpClient.newBuilder()
@@ -51,7 +53,7 @@ public class ClientTests {
         return response.body();
     }
 
-    private String introspectToken(String token) throws IOException, InterruptedException {
+    private HttpResponse<String> introspectToken(String token, String accessToken) throws IOException, InterruptedException {
         // form parameters
         Map<Object, Object> data = new HashMap<>();
         data.put("token", token);
@@ -60,11 +62,11 @@ public class ClientTests {
                 .POST(ofFormData(data))
                 .uri(URI.create("http://localhost/oauth/introspect"))
                 .setHeader("User-Agent", "Java 11 HttpClient Bot") // add request header
+                .setHeader("Authorization", "Bearer " + accessToken)
                 .header("Content-Type", "application/x-www-form-urlencoded")
                 .build();
 
-        HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
-        return response.body();
+        return httpClient.send(request, HttpResponse.BodyHandlers.ofString());
     }
 
     @Test
@@ -76,7 +78,9 @@ public class ClientTests {
             System.out.println(response);
             AuthorizationToken token = gson.fromJson(response, AuthorizationToken.class);
             System.out.println(token.getAccess_token());
-            System.out.println(introspectToken(token.getAccess_token()));
+            HttpResponse<String> tokenIntrospect = introspectToken(token.getAccess_token(), token.getAccess_token());
+            System.out.println(tokenIntrospect.body());
+            assertEquals(200, tokenIntrospect.statusCode());
         } catch (IOException e) {
             e.printStackTrace();
         } catch (InterruptedException e) {
