@@ -1,21 +1,20 @@
-import MicroOauthServer.ClientDatabase.SqlClientStorageController;
-import MicroOauthServer.Clients.OauthClient;
-import MicroOauthServer.Configuration.ClientDatabaseConfig;
-import MicroOauthServer.Configuration.Configuration;
+package MicroOauthServer.Token.TokenDatabase;
+
+import MicroOauthServer.Configuration.ConfigurationService;
+import MicroOauthServer.Configuration.MicroOauthConfiguration;
 import MicroOauthServer.Configuration.TokenCacheConfig;
 import MicroOauthServer.Token.StorageToken;
 import MicroOauthServer.Token.TokenDatabase.SqlTokenCacheController;
 import org.junit.Test;
 
 import java.util.Optional;
-import java.util.Set;
 
 import static junit.framework.TestCase.*;
 
 public class SqlTokenCacheControllerTest {
     @Test
     public void testSqlTokenCache() {
-        Configuration config = new Configuration();
+        ConfigurationService config = new ConfigurationService();
         config.setTokenCache(new TokenCacheConfig("sqlite", "jdbc:sqlite::memory:", 3306));
         SqlTokenCacheController controller = new SqlTokenCacheController(config);
         StorageToken token = new StorageToken("testClient", "AAAAAAAA", "access_token", "token-introspect client-mgmt", Long.MAX_VALUE, Long.MAX_VALUE, "http://localhost/");

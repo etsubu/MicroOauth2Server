@@ -1,3 +1,5 @@
+package MicroOauthServer.Common;
+
 import MicroOauthServer.Common.URLParser;
 import org.junit.Test;
 

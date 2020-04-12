@@ -1,3 +1,5 @@
+package MicroOauthServer.Clients;
+
 import MicroOauthServer.Clients.OauthClient;
 import org.junit.Test;
 

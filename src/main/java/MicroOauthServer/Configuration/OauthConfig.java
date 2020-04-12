@@ -1,10 +1,10 @@
 package MicroOauthServer.Configuration;
 
 /**
- * MicroOauth general configuration
+ * Oauth general configuration
  * @author etsubu
  */
-public class MicroOauthConfig {
+public class OauthConfig {
     private String keystorePath;
     private char[] keystorePassword;
     private long accessTokenTTL;
@@ -17,12 +17,12 @@ public class MicroOauthConfig {
     /**
      * Empty constructor for snakeyaml
      */
-    public MicroOauthConfig() {
+    public OauthConfig() {
 
     }
 
-    public MicroOauthConfig(String keystorePath, char[] keystorePassword, long accessTokenTTL, long refreshTokenTTL, long authorizationCodeTTL,
-                            int authorizationCodeLength, int accessTokenLength, int refreshTokenLength) {
+    public OauthConfig(String keystorePath, char[] keystorePassword, long accessTokenTTL, long refreshTokenTTL, long authorizationCodeTTL,
+                       int authorizationCodeLength, int accessTokenLength, int refreshTokenLength) {
         this.keystorePath = keystorePath;
         this.keystorePassword = keystorePassword;
         this.accessTokenTTL = accessTokenTTL;
@@ -33,8 +33,15 @@ public class MicroOauthConfig {
         this.refreshTokenLength = refreshTokenLength;
     }
 
-    public static MicroOauthConfig generateDefaultConfig() {
-        return new MicroOauthConfig("keys.ks", "defaultKey".toCharArray(), 60 * 5, 60 * 60 * 24 * 30, 60 * 2, 12, 16, 32);
+    public static OauthConfig generateDefaultConfig() {
+        return new OauthConfig("keys.ks",
+                "defaultKey".toCharArray(),
+                60 * 5,
+                60 * 60 * 24 * 30,
+                60 * 2,
+                16,
+                16,
+                16);
     }
 
     public String getKeystorePath() { return keystorePath; }

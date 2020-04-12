@@ -1,7 +1,10 @@
+package MicroOauthServer.ClientDatabase;
+
 import MicroOauthServer.ClientDatabase.SqlClientStorageController;
 import MicroOauthServer.Clients.OauthClient;
 import MicroOauthServer.Configuration.ClientDatabaseConfig;
-import MicroOauthServer.Configuration.Configuration;
+import MicroOauthServer.Configuration.ConfigurationService;
+import MicroOauthServer.Configuration.MicroOauthConfiguration;
 import org.junit.Test;
 
 import java.util.Optional;
@@ -15,7 +18,7 @@ public class SqlClientStorageControllerTest {
 
     @Test
     public void testSQLDatabase() {
-        Configuration config = new Configuration();
+        ConfigurationService config = new ConfigurationService();
         config.setClientDatabase(new ClientDatabaseConfig("sqlite", ":memory:", 3306));
         SqlClientStorageController controller = new SqlClientStorageController(config);
         OauthClient client = new OauthClient("testClient", Set.of("token-introspect", "client-mgmt"), Set.of("http://localhost/", "http://example.com/"), "TestSecret","This is a test client");

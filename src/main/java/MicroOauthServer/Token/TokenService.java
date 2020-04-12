@@ -2,7 +2,8 @@ package MicroOauthServer.Token;
 
 import MicroOauthServer.ClientDatabase.ClientManager;
 import MicroOauthServer.ClientDatabase.InvalidScopeException;
-import MicroOauthServer.Configuration.Configuration;
+import MicroOauthServer.Configuration.ConfigurationService;
+import MicroOauthServer.Configuration.MicroOauthConfiguration;
 import MicroOauthServer.Crypto.SymmetricCrypto;
 import MicroOauthServer.Exceptions.InvalidRedirectUriException;
 import MicroOauthServer.Exceptions.MicroOauthCoreException;
@@ -34,7 +35,7 @@ public class TokenService {
     private TokenGenerator tokenGenerator;
 
     @Autowired
-    private Configuration configuration;
+    private ConfigurationService microOauthConfiguration;
 
     public TokenService() {
         this.tokenStorage = new SimpleTokenStorage();

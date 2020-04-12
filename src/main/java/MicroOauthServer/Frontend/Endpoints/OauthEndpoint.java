@@ -6,6 +6,7 @@ import MicroOauthServer.ClientFlow.Flows.ClientGrantFlow;
 import MicroOauthServer.ClientFlow.Flows.GrantFlow;
 import MicroOauthServer.ClientFlow.Flows.PasswordCredentialGrantFlow;
 import MicroOauthServer.ClientFlow.Flows.RefreshTokenGrantFlow;
+import MicroOauthServer.Exceptions.InvalidClientException;
 import MicroOauthServer.Exceptions.MicroOauthCoreException;
 import MicroOauthServer.Exceptions.TokenExpiredException;
 import MicroOauthServer.Sdk.Annotations.RequireScopes;
@@ -66,7 +67,7 @@ public class OauthEndpoint {
     @PostMapping(value = "/token")
     public String loginFlow(@RequestParam Map<String,String> body,
                                   @RequestParam(value = "grant_type") String grantType,
-                                  @RequestHeader(value = "Authorization", required = false) String authorization) {
+                                  @RequestHeader(value = "Authorization", required = false) String authorization) throws Exception{
         if(body == null)
             body = new HashMap<>(0);
         GrantFlow flow = grantFlows.get(grantType);
@@ -76,12 +77,8 @@ public class OauthEndpoint {
 
         try {
             return flow.doFlow(body, authorization);
-        } catch (InvalidScopeException e) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Invalid scope");
-        } catch (MicroOauthCoreException e) {
+        }catch (MicroOauthCoreException e) {
             throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Internal server error. Please try again later");
-        } catch (TokenExpiredException e) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Invalid token");
         }
     }
 

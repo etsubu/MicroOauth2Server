@@ -1,23 +1,16 @@
 package MicroOauthServer.Configuration;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.SequenceWriter;
-import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
-import org.yaml.snakeyaml.Yaml;
 
 import java.io.File;
-import java.io.FileOutputStream;
 import java.io.IOException;
-import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
+import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.nio.file.StandardOpenOption;
-
-import org.yaml.snakeyaml.constructor.Constructor;
 
 import javax.annotation.PostConstruct;
 
@@ -25,10 +18,9 @@ import javax.annotation.PostConstruct;
  * Base configuration class for the oauth server
  * @author etsubu
  */
-@Component
-public class Configuration {
-    private static final Logger log = LoggerFactory.getLogger(Configuration.class);
-    private MicroOauthConfig microOauth;
+public class MicroOauthConfiguration {
+    private static final Logger log = LoggerFactory.getLogger(MicroOauthConfiguration.class);
+    private OauthConfig microOauth;
     private JettyConfig jettyConfig;
     private ClientDatabaseConfig clientDatabase;
     private TokenCacheConfig tokenCache;
@@ -36,63 +28,54 @@ public class Configuration {
     /**
      * Empty constructor for snakeyaml
      */
-    public Configuration() {
+    public MicroOauthConfiguration() {
 
     }
 
-    @PostConstruct
-    public void init() {
+    public static MicroOauthConfiguration loadConfig(Path path) {
         ObjectMapper mapper = new ObjectMapper(new YAMLFactory());
         try {
-            Configuration config = mapper.readValue(new File("config.yaml"), Configuration.class);
+            MicroOauthConfiguration config = mapper.readValue(path.toFile(), MicroOauthConfiguration.class);
             mapper.findAndRegisterModules();
-            this.microOauth     = config.getMicroOauth();
-            this.jettyConfig    = config.getJettyConfig();
-            this.clientDatabase = config.getClientDatabase();
-            this.tokenCache     = config.getTokenCache();
-            return;
+            return config;
         } catch (IOException e) {
-            if(Files.exists(Paths.get("config.yaml"))) {
+            /*if(Files.exists(Paths.get("config.yaml"))) {
                 log.error("Configuration file could not be deserialized ", e);
                 System.exit(0);
                 throw new RuntimeException("Invalid configuration");
-            }
+            }*/
         }
-        Configuration config = Configuration.generateDefaultConfig();
-        this.microOauth     = config.getMicroOauth();
-        this.jettyConfig    = config.getJettyConfig();
-        this.clientDatabase = config.getClientDatabase();
-        this.tokenCache     = config.getTokenCache();
-
+        MicroOauthConfiguration config = MicroOauthConfiguration.generateDefaultConfig();
         try{
             mapper.writeValue(new File("config.yaml"), config);
         } catch (IOException e) {
             log.error("Failed to save default configuration to a file ", e);
         }
+        return config;
     }
 
-    public Configuration(Configuration c) {
+    public MicroOauthConfiguration(MicroOauthConfiguration c) {
         this.microOauth = c.getMicroOauth();
         this.jettyConfig = c.getJettyConfig();
         this.clientDatabase = c.getClientDatabase();
         this.tokenCache = c.getTokenCache();
     }
 
-    public Configuration(MicroOauthConfig microOauth, JettyConfig jettyConfig, ClientDatabaseConfig clientDatabase, TokenCacheConfig tokenCache) {
+    public MicroOauthConfiguration(OauthConfig microOauth, JettyConfig jettyConfig, ClientDatabaseConfig clientDatabase, TokenCacheConfig tokenCache) {
         this.microOauth = microOauth;
         this.jettyConfig = jettyConfig;
         this.clientDatabase = clientDatabase;
         this.tokenCache = tokenCache;
     }
 
-    public static Configuration generateDefaultConfig() {
-        return new Configuration(MicroOauthConfig.generateDefaultConfig(), JettyConfig.generateDefaultConfig(),
+    public static MicroOauthConfiguration generateDefaultConfig() {
+        return new MicroOauthConfiguration(OauthConfig.generateDefaultConfig(), JettyConfig.generateDefaultConfig(),
                 ClientDatabaseConfig.generateDefaultConfig(), TokenCacheConfig.generateDefaultConfig());
     }
 
-    public MicroOauthConfig getMicroOauth() { return microOauth; }
+    public OauthConfig getMicroOauth() { return microOauth; }
 
-    public void setMicroOauth(MicroOauthConfig microOauth) { this.microOauth = microOauth; }
+    public void setMicroOauth(OauthConfig microOauth) { this.microOauth = microOauth; }
 
     public JettyConfig getJettyConfig() { return jettyConfig; }
 

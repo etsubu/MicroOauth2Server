@@ -1,3 +1,5 @@
+package MicroOauthServer.Crypto;
+
 import MicroOauthServer.Crypto.SymmetricCrypto;
 import org.junit.Test;
 

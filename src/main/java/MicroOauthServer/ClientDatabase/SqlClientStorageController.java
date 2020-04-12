@@ -1,13 +1,13 @@
 package MicroOauthServer.ClientDatabase;
 
 import MicroOauthServer.Clients.OauthClient;
-import MicroOauthServer.Configuration.Configuration;
+import MicroOauthServer.Configuration.ConfigurationService;
+import MicroOauthServer.Configuration.MicroOauthConfiguration;
 import MicroOauthServer.Sdk.Annotations.ClientStorageController;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
 
+import java.lang.module.Configuration;
 import java.sql.*;
 import java.util.Arrays;
 import java.util.HashSet;
@@ -20,9 +20,9 @@ public class SqlClientStorageController implements ClientStorageAPI {
     private static final String OAUTH_CLIENT_TABLE = "OauthClients";
     private static final String REDIRECT_TABLE     = "ClientRedirects";
     private Connection connection;
-    private Configuration config;
+    private ConfigurationService config;
 
-    public SqlClientStorageController(Configuration config) {
+    public SqlClientStorageController(ConfigurationService config) {
         this.config = config;
         init();
     }

@@ -1,3 +1,5 @@
+package MicroOauthServer.Crypto;
+
 import MicroOauthServer.Crypto.PasswordHasherManager;
 import org.junit.Test;
 

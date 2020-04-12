@@ -13,6 +13,7 @@ import org.springframework.stereotype.Component;
 
 import javax.annotation.PostConstruct;
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 
 /**
@@ -21,7 +22,7 @@ import java.util.Set;
  */
 @Component
 public class ClientManager {
-    private Logger log = LoggerFactory.getLogger(ClientManager.class);
+    private static final Logger log = LoggerFactory.getLogger(ClientManager.class);
 
     @Autowired
     private ClientStorageAPI clientStorage;
@@ -61,15 +62,15 @@ public class ClientManager {
         throw new InvalidScopeException();
     }
 
-    public OauthClient createClient(String clientId, Set<String> scopes, Set<String> redirectUris, String plaintextSecret, String description) throws ClientAuthenticationException {
-        if(clientStorage.queryClient(clientId).isEmpty()) {
+    public OauthClient createClient(String clientId, Set<String> scopes, Set<String> redirectUris, String plaintextSecret, String description) {
+        Optional<OauthClient> client = clientStorage.queryClient(clientId);
+        if(client.isEmpty()) {
             String secret = hashManager.hash(plaintextSecret);
-            OauthClient client = new OauthClient(clientId, scopes, redirectUris, secret, description);
-            clientStorage.addClient(new OauthClient(clientId, scopes, redirectUris, secret, description));
-            return client;
-        } else {
-            throw new ClientAuthenticationException();
+            OauthClient oauthClient = new OauthClient(clientId, scopes, redirectUris, secret, description);
+            clientStorage.addClient(oauthClient);
+            return oauthClient;
         }
+        return client.get();
     }
 
     /**

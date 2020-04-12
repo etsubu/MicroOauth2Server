@@ -1,7 +1,8 @@
 package MicroOauthServer.Token.TokenDatabase;
 
 import MicroOauthServer.ClientDatabase.SqlClientStorageController;
-import MicroOauthServer.Configuration.Configuration;
+import MicroOauthServer.Configuration.ConfigurationService;
+import MicroOauthServer.Configuration.MicroOauthConfiguration;
 import MicroOauthServer.Sdk.Annotations.TokenCacheController;
 import MicroOauthServer.Token.StorageToken;
 import org.slf4j.Logger;
@@ -15,9 +16,9 @@ public class SqlTokenCacheController implements TokenStorageAPI {
     private static final Logger log = LoggerFactory.getLogger(SqlClientStorageController.class);
     private static final String TOKENS_TABLE = "Tokens";
     private Connection connection;
-    private Configuration config;
+    private ConfigurationService config;
 
-    public SqlTokenCacheController(Configuration config) {
+    public SqlTokenCacheController(ConfigurationService config) {
         this.config = config;
         init();
     }

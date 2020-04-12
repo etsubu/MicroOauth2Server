@@ -1,5 +1,7 @@
 package MicroOauthServer.Configuration;
 
+import MicroOauthServer.Authentication.AuthenticationController;
+import MicroOauthServer.Authentication.SimpleAuthenticator;
 import MicroOauthServer.ClientDatabase.ClientStorageAPI;
 import MicroOauthServer.ClientDatabase.SimpleClientStorage;
 import MicroOauthServer.ClientDatabase.SqlClientStorageController;
@@ -21,13 +23,13 @@ public class Beans {
     private static final Logger log = LoggerFactory.getLogger(Beans.class);
 
     @Autowired
-    private MicroOauthServer.Configuration.Configuration configuration;
+    private ConfigurationService microOauthConfiguration;
 
     @Bean
     public ConfigurableServletWebServerFactory webServerFactory()
     {
         JettyServletWebServerFactory factory = new JettyServletWebServerFactory();
-        factory.setPort(configuration.getJettyConfig().getPort());
+        factory.setPort(microOauthConfiguration.getJettyConfig().getPort());
         factory.setContextPath("");
         factory.addErrorPages(new ErrorPage(HttpStatus.NOT_FOUND, "/not_found.html"));
         return factory;
@@ -45,11 +47,16 @@ public class Beans {
 
     @Bean
     public ClientStorageAPI createClientStorageApi() {
-        if(configuration.getClientDatabase().getControllerName().equals("SQL")) {
+        if(microOauthConfiguration.getClientDatabase().getControllerName().equals("SQL")) {
             log.info("Initializing SQL database for oauth client storage");
-            return new SqlClientStorageController(configuration);
+            return new SqlClientStorageController(microOauthConfiguration);
         }
         return new SimpleClientStorage();
+    }
+
+    @Bean
+    public AuthenticationController createAuthenticationController() {
+        return new SimpleAuthenticator();
     }
 
 }
