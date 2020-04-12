@@ -10,6 +10,40 @@ Please note that the project is currently in very early development and master b
 to be stable yet as most features are not ready. When the core features have been implemented 
 then release versions will be created and a proper release cycle will be followed.
 
+## Libraries
+
+MicroOauth uses spring boot and jetty for its REST API. Standard java SQL database driver is used 
+for SQL database access. Lettuce will be used for builtin Redis controller if Redis is used as token 
+cache. Configuration files are YAML files.
+
+## Configuration
+
+When running MicroOauth if without configuration file config.yaml is missing, 
+MicroOauth will generate a default configuration file which can be then modified.
+
+```yaml
+microOauth:
+  keystorePath: "keys.ks"
+  keystorePassword: "defaultKey"
+  accessTokenTTL: 300
+  refreshTokenTTL: 2592000
+  authorizationCodeTTL: 120
+  authorizationCodeLength: 12
+  accessTokenLength: 16
+  refreshTokenLength: 32
+jettyConfig:
+  port: 80
+  keyStorePath: "jetty.jks"
+clientDatabase:
+  controllerName: "SQL"
+  hostname: "jdbc:sqlite:clientStorage.db"
+  port: 3306
+tokenCache:
+  controllerName: "SQL"
+  hostname: "jdbc:sqlite:tokenCache.db"
+  port: 3306
+```
+
 ## Token cache
 
 MicroOauth abstracts cache controller and the underlying storage can be changed in configuration file 
@@ -32,7 +66,8 @@ token integrity and makes timing attacks impractical, as well as allows invalid 
 faster without having to query token cache.
 
 ## How to build
-MicroOauth targets JDK 11 and comes with gradle wrapper. To build the project: \
+MicroOauth targets JDK 11 and comes with gradle wrapper. To build the project:
+
 ```
 git clone https://github.com/etsubu/MicroOauth2Server.git
 ./gradlew clean build
