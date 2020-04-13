@@ -91,7 +91,9 @@ public class TokenGenerator {
         // Sign the token
         try {
             String signedTokenKey = Base64.getEncoder().encodeToString(crypto.encrypt(Base64.getDecoder().decode(token.getToken())));
-            String signedRefreshToken = Base64.getEncoder().encodeToString(crypto.encrypt(Base64.getDecoder().decode(refreshToken)));
+            String signedRefreshToken = refreshToken != null ?
+                    Base64.getEncoder().encodeToString(crypto.encrypt(Base64.getDecoder().decode(refreshToken))) :
+                    null;
             log.info("Before after signing " + token.getToken() + " : " + signedTokenKey);
             return new AuthorizationToken(signedTokenKey, AuthorizationToken.BEARER_TYPE, TTL, signedRefreshToken, token.getScopes());
         } catch (Exception e) {

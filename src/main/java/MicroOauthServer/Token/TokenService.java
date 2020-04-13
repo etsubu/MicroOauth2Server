@@ -78,7 +78,7 @@ public class TokenService {
             throw new TokenExpiredException();
         }
         String grantedScopes = ClientManager.validateScopes(token.getScopes(), scopes);
-        return generateTokenForClient(token.getClientId(), grantedScopes);
+        return generateTokenForClient(token.getClientId(), grantedScopes, true);
     }
 
     public AuthorizationToken useAuthorizationCode(String code, String redirectUri) throws TokenExpiredException, InvalidRedirectUriException {
@@ -100,10 +100,10 @@ public class TokenService {
         tokenStorage.addToken(authToken);
         return tokenGenerator.storageTokenToBearerToken(authToken, null);
     }
-
+/*
     public AuthorizationToken generateTokenForClient(String clientId, String scopes) throws MicroOauthCoreException{
         return generateTokenForClient(clientId, scopes, null);
-    }
+    }*/
 
     public AuthorizationCode generateAuthorizationCode(String clientId, String scopes, String redirectUrl) {
         String code = tokenGenerator.generateAuthorizationCode();
@@ -112,9 +112,9 @@ public class TokenService {
         return new AuthorizationCode(token.getToken());
     }
 
-    public AuthorizationToken generateTokenForClient(String clientId, String scopes, String refreshToken) throws MicroOauthCoreException{
+    public AuthorizationToken generateTokenForClient(String clientId, String scopes, boolean generateRefreshToken) throws MicroOauthCoreException{
         String token = tokenGenerator.generateToken();
-        refreshToken = tokenGenerator.generateToken();
+        String refreshToken = generateRefreshToken ? tokenGenerator.generateToken() : null;
 
         StorageToken storageToken = tokenGenerator.generateStorageToken(clientId, TokenGenerator.ACCESS_TOKEN_TYPE, scopes, token);
         log.info("Storage token " + storageToken.getToken());

@@ -25,6 +25,7 @@ public class Beans {
     @Autowired
     private ConfigurationService microOauthConfiguration;
 
+
     @Bean
     public ConfigurableServletWebServerFactory webServerFactory()
     {

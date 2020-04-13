@@ -3,12 +3,13 @@ package MicroOauthServer.Token;
 import java.time.Instant;
 
 public class StorageToken {
-    private String clientId;
-    private String token;
-    private String type;
-    private String scopes;
-    private long generatedTimestamp;
-    private long TTL;
+    private final String clientId;
+    private String username;
+    private final String token;
+    private final String type;
+    private final String scopes;
+    private final long generatedTimestamp;
+    private final long TTL;
     private String redirectUri;
 
     public StorageToken(String clientId, String token, String type, String scopes, long generatedTimestamp, long TTL) {

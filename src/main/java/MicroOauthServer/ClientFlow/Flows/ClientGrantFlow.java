@@ -15,6 +15,7 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.server.ResponseStatusException;
 
 import java.nio.charset.StandardCharsets;
+import java.util.Arrays;
 import java.util.Base64;
 import java.util.Map;
 
@@ -34,8 +35,8 @@ public class ClientGrantFlow extends GrantFlow {
     }
 
     @Override
-    public String doFlow(Map<String, String> body, String authorization) throws MicroOauthCoreException, TokenExpiredException, InvalidScopeException, InvalidClientException, ClientAuthenticationException {
-        String clientId, secret;
+    public String doFlow(Map<String, String> body, String authorization) throws MicroOauthCoreException, InvalidScopeException, InvalidClientException {
+        String clientId, secret, scope = body.get("scope");
         if(authorization == null || !authorization.startsWith("Basic ") || authorization.length() < 7) {
             clientId = body.get("client_id");
             secret = body.get("client_secret");
@@ -43,16 +44,18 @@ public class ClientGrantFlow extends GrantFlow {
         } else {
             String[] parts = new String(Base64.getDecoder().decode(authorization.substring(6)), StandardCharsets.UTF_8).split(":");
             if(parts.length != 2) {
-                throw new InvalidClientException();
+                throw new InvalidClientException(HttpStatus.BAD_REQUEST, "Invalid authorization header structure", "https://tools.ietf.org/html/rfc2617#section-2");
             }
             clientId = parts[0];
             secret = parts[1];
             log.info("Extracted client credentials from basic auth");
         }
-        if(clientId == null || secret == null) {
-            throw new InvalidClientException();
+        // Try to give informative error descriptions for the client
+        if(clientId == null) {
+            throw new InvalidClientException(HttpStatus.BAD_REQUEST, InvalidClientException.CLIENT_ID_MISSING);
+        } else if(secret == null) {
+            throw new InvalidClientException(HttpStatus.BAD_REQUEST, InvalidClientException.CLIENT_SECRET_MISSING);
         }
-        log.info((gson == null) + "----------------" + (manager == null));
-        return gson.toJson(manager.authenticateClient(clientId, secret, null));
+        return gson.toJson(manager.authenticateClient(clientId, secret, scope));
     }
 }

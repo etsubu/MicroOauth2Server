@@ -40,7 +40,7 @@ public class ImplicitGrantFlow extends GrantFlow {
         if(!responseType.equals(TOKEN)) {
             throw new MicroOauthCoreException("Response type must be \"token\"");
         }
-        AuthorizationToken token = tokenService.generateTokenForClient(clientId, scope);
+        AuthorizationToken token = tokenService.generateTokenForClient(clientId, scope, false);
         redirectUri += "?access_token=" + token.getAccess_token() + "&state=" + state + "&expires_in=" + token.getExpires_in();
         return redirectUri;
     }

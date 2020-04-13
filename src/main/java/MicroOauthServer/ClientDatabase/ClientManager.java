@@ -2,6 +2,7 @@ package MicroOauthServer.ClientDatabase;
 
 import MicroOauthServer.Clients.OauthClient;
 import MicroOauthServer.Crypto.PasswordHasherManager;
+import MicroOauthServer.Exceptions.InvalidClientException;
 import MicroOauthServer.Exceptions.MicroOauthCoreException;
 import MicroOauthServer.Sdk.Annotations.Scopes.Scopes;
 import MicroOauthServer.Token.AuthorizationToken;
@@ -9,6 +10,7 @@ import MicroOauthServer.Token.TokenService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Component;
 
 import javax.annotation.PostConstruct;
@@ -79,21 +81,24 @@ public class ClientManager {
      * @param secret Client Secret
      * @param requestedScopes Requested scopes for the access token (these must exist in the client's scopes)
      * @return AuthorizationToken with the requested scopes
-     * @throws ClientAuthenticationException There was an error with the authentication
+     * @throws InvalidClientException There was an error with the authentication
      * @throws InvalidScopeException Tries to request a scope that does not belong to the client
      */
-    public AuthorizationToken authenticateClient(String clientId, String secret, String requestedScopes) throws ClientAuthenticationException, InvalidScopeException, MicroOauthCoreException {
+    public AuthorizationToken authenticateClient(String clientId, String secret, String requestedScopes) throws InvalidClientException, InvalidScopeException, MicroOauthCoreException {
         OauthClient client = clientStorage.queryClient(clientId)
-                .orElseThrow(ClientAuthenticationException::new);
+                .orElseThrow(() -> new InvalidClientException(HttpStatus.UNAUTHORIZED, InvalidClientException.INVALID_CLIENT_OR_SECRET));
         try {
             if(hashManager.validatePassword(client.getSecret(), secret)) {
                 log.info("Successfully authenticated client " + clientId);
-                return tokenService.generateTokenForClient(clientId, validateScopes(String.join(" ", client.getScopes()), requestedScopes));
+                return tokenService.generateTokenForClient(clientId,
+                        validateScopes(String.join(" ", client.getScopes()),
+                                requestedScopes),
+                        false);
             }
         } catch (IllegalArgumentException e) {
             log.error("Failed to validate password ", e);
         }
-        throw new ClientAuthenticationException();
+        throw new InvalidClientException(HttpStatus.UNAUTHORIZED, InvalidClientException.INVALID_CLIENT_OR_SECRET);
     }
 
 }
